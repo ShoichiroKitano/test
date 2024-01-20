@@ -80,7 +80,7 @@ func (controller *InvoiceController) Create(c echo.Context) error {
 	if err = controller.RDB.CreateInvoice(invoice); err != nil {
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusCreated, toJSONInvoice(invoice, salesTaxRate))
+	return c.JSON(http.StatusOK, toJSONInvoice(invoice, salesTaxRate))
 }
 
 func toJSONInvoice(invoice *entity.Invoice, salesTaxRate *entity.SalesTaxRate) map[string]any {
