@@ -26,7 +26,7 @@ func TestInvoiceRepository_FindInvoiceByIssueDates(t *testing.T) {
 			Status:         entity.InvoiceStatusPaid,
 		}))
 
-		results, err := tx.FindInvoiceWithPaymentDueDatesInPeriod("2024-01-01", "2024-01-01")
+		results, err := tx.FindInvoiceWithPaymentDueDatesInPeriod(2, "2024-01-01", "2024-01-01")
 		require.NoError(t, err)
 		require.Equal(t, 1, len(results))
 		assert.NotEqual(t, uint64(0), results[0].ID)
@@ -43,18 +43,30 @@ func TestInvoiceRepository_FindInvoiceByIssueDates(t *testing.T) {
 	})
 
 	RunWithTx(t, "指定した期間のInvoiceが取得できること", func(t *testing.T, tx RDBRepository) {
-		require.NoError(t, tx.CreateInvoice(createInvoice(map[string]any{"PaymentDueDate": parseDate("2023-12-31")})))
-		require.NoError(t, tx.CreateInvoice(createInvoice(map[string]any{"PaymentDueDate": parseDate("2024-01-01")})))
-		require.NoError(t, tx.CreateInvoice(createInvoice(map[string]any{"PaymentDueDate": parseDate("2024-01-02")})))
-		require.NoError(t, tx.CreateInvoice(createInvoice(map[string]any{"PaymentDueDate": parseDate("2024-01-03")})))
-		require.NoError(t, tx.CreateInvoice(createInvoice(map[string]any{"PaymentDueDate": parseDate("2024-01-04")})))
+		require.NoError(t, tx.CreateInvoice(createInvoice(map[string]any{"PaymentDueDate": parseDate("2023-12-31"), "CorporateID": 1})))
+		require.NoError(t, tx.CreateInvoice(createInvoice(map[string]any{"PaymentDueDate": parseDate("2024-01-01"), "CorporateID": 1})))
+		require.NoError(t, tx.CreateInvoice(createInvoice(map[string]any{"PaymentDueDate": parseDate("2024-01-02"), "CorporateID": 1})))
+		require.NoError(t, tx.CreateInvoice(createInvoice(map[string]any{"PaymentDueDate": parseDate("2024-01-03"), "CorporateID": 1})))
+		require.NoError(t, tx.CreateInvoice(createInvoice(map[string]any{"PaymentDueDate": parseDate("2024-01-04"), "CorporateID": 1})))
 
-		results, err := tx.FindInvoiceWithPaymentDueDatesInPeriod("2024-01-01", "2024-01-03")
+		results, err := tx.FindInvoiceWithPaymentDueDatesInPeriod(1, "2024-01-01", "2024-01-03")
 		require.NoError(t, err)
 		require.Equal(t, 3, len(results))
 		assert.Equal(t, parseDate("2024-01-01"), results[0].PaymentDueDate)
 		assert.Equal(t, parseDate("2024-01-02"), results[1].PaymentDueDate)
 		assert.Equal(t, parseDate("2024-01-03"), results[2].PaymentDueDate)
+	})
+
+	RunWithTx(t, "他の企業のinvoiceは取得できないこと", func(t *testing.T, tx RDBRepository) {
+		invoiceCreatedCorporateID := uint64(1)
+		require.NoError(t, tx.CreateInvoice(
+			createInvoice(map[string]any{"PaymentDueDate": parseDate("2024-01-01"), "CorporateID": invoiceCreatedCorporateID})),
+		)
+
+		otherCorporateID := uint64(2)
+		results, err := tx.FindInvoiceWithPaymentDueDatesInPeriod(otherCorporateID, "2024-01-01", "2024-01-01")
+		require.NoError(t, err)
+		require.Equal(t, 0, len(results))
 	})
 }
 
@@ -66,6 +78,14 @@ func createInvoice(override map[string]any) *entity.Invoice {
 	}
 	if value, ok := override["PaymentDueDate"]; ok {
 		invoice.PaymentDueDate = value.(time.Time)
+	}
+	if value, ok := override["CorporateID"]; ok {
+		switch id := value.(type) {
+		case int:
+			invoice.CorporateID = uint64(id)
+		case uint64:
+			invoice.CorporateID = id
+		}
 	}
 	return invoice
 }

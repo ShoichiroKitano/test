@@ -40,8 +40,13 @@ func (repo *RDBRepository) CreateInvoice(e *entity.Invoice) error {
 	return err
 }
 
-func (repo *RDBRepository) FindInvoiceWithPaymentDueDatesInPeriod(startDate, endDate string) ([]*entity.Invoice, error) {
-	rows, err := repo.Driver.Queryx("SELECT * FROM invoices where payment_due_date BETWEEN ? AND ?;", startDate, endDate)
+func (repo *RDBRepository) FindInvoiceWithPaymentDueDatesInPeriod(corporateID uint64, startDate, endDate string) ([]*entity.Invoice, error) {
+	rows, err := repo.Driver.Queryx(
+		"SELECT * FROM invoices where corporate_id = ? and payment_due_date BETWEEN ? AND ?;",
+		corporateID,
+		startDate,
+		endDate,
+	)
 	if err != nil {
 		return nil, err
 	}
