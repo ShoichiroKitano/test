@@ -27,6 +27,7 @@ func main() {
 	requireLogin.POST("/login", auth.Login)
 
 	invoice := &controller.InvoiceController{RDB: repo}
+	requireLogin.GET("/invoices", invoice.Index)
 	requireLogin.POST("/invoices", invoice.Create)
 
 	e.Logger.Fatal(e.Start("localhost:3000"))

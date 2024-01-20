@@ -21,6 +21,15 @@ func (rate SalesTaxRate) SalesTax(amount int64) int64 {
 
 type SalesTaxRates []*SalesTaxRate
 
+func (rates SalesTaxRates) FindByID(id uint64) *SalesTaxRate {
+	for _, rate := range rates {
+		if rate.ID == id {
+			return rate
+		}
+	}
+	return nil
+}
+
 func (rates SalesTaxRates) AppliedAt(date time.Time) *SalesTaxRate {
 	tmp := make(SalesTaxRates, 0, len(rates))
 	for _, rate := range rates {

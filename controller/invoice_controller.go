@@ -13,6 +13,33 @@ type InvoiceController struct {
 	RDB *repository.RDBRepository
 }
 
+func (controller *InvoiceController) Index(c echo.Context) error {
+	userID, err := UserID(c)
+	if err != nil {
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	corporate, err := controller.RDB.FindCorporateByUserID(userID)
+	if err != nil {
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	invoices, err := controller.RDB.FindInvoiceWithPaymentDueDatesInPeriod(
+		corporate.ID,
+		c.QueryParam("start_date"),
+		c.QueryParam("end_date"),
+	)
+	if err != nil {
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	taxRates := controller.RDB.FindSalesTaxRates()
+
+	invoiceJSONs := make([]map[string]any, 0, len(invoices))
+	for _, invoice := range invoices {
+		taxRate := taxRates.FindByID(invoice.SalesTaxRateID)
+		invoiceJSONs = append(invoiceJSONs, toJSONInvoice(invoice, taxRate))
+	}
+	return c.JSON(http.StatusOK, map[string]any{"invoices": invoiceJSONs})
+}
+
 type InvoiceCreateRequestJson struct {
 	PartnerID      uint64 `json:"partner_id"`
 	IssueDate      string `json:"issue_date"` // TODO: ちゃんとした日付の型を作る
@@ -92,5 +119,5 @@ func parseDate(str string) time.Time {
 
 func toStringDate(date time.Time) string {
 	year, month, day := date.Date()
-	return fmt.Sprintf("%d-%d-%d", year, month, day)
+	return fmt.Sprintf("%d-%02d-%02d", year, month, day)
 }
