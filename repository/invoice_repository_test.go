@@ -23,7 +23,7 @@ func TestInvoiceRepository_FindInvoiceByIssueDates(t *testing.T) {
 			SalesTaxRateID: 4,
 			PaymentDueDate: parseDate("2024-01-01"),
 			IssueDate:      parseDate("2024-01-02"),
-			Status:         entity.InvoiceStatusCompleted,
+			Status:         entity.InvoiceStatusPaid,
 		}))
 
 		results, err := tx.FindInvoiceWithPaymentDueDatesInPeriod("2024-01-01", "2024-01-01")
@@ -39,7 +39,7 @@ func TestInvoiceRepository_FindInvoiceByIssueDates(t *testing.T) {
 		assert.Equal(t, uint64(4), results[0].SalesTaxRateID)
 		assert.Equal(t, parseDate("2024-01-01"), results[0].PaymentDueDate)
 		assert.Equal(t, parseDate("2024-01-02"), results[0].IssueDate)
-		assert.Equal(t, entity.InvoiceStatusCompleted, results[0].Status)
+		assert.Equal(t, entity.InvoiceStatusPaid, results[0].Status)
 	})
 
 	RunWithTx(t, "指定した期間のInvoiceが取得できること", func(t *testing.T, tx RDBRepository) {
