@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=super_shiharai_kun
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=mysql
+      - TZ=Asia/Tokyo
+    ports:
+      - "3306:3306"
