@@ -8,7 +8,7 @@ import (
 const (
 	InvoiceStatusUnprocessed uint8 = 0
 	InvoiceStatusProcessing  uint8 = 1
-	InvoiceStatusCompleted   uint8 = 2
+	InvoiceStatusPaid        uint8 = 2
 	InvoiceStatusError       uint8 = 3
 )
 
