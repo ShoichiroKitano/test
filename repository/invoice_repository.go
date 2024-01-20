@@ -5,7 +5,7 @@ import (
 )
 
 func (repo *RDBRepository) CreateInvoice(e *entity.Invoice) error {
-	_, err := repo.Driver.Exec(
+	result, err := repo.Driver.Exec(
 		`INSERT INTO invoices (
 			 corporate_id,
 			 partner_id,
@@ -29,7 +29,14 @@ func (repo *RDBRepository) CreateInvoice(e *entity.Invoice) error {
 		e.PaymentDueDate,
 		e.Status,
 	)
-	// TODO: idをentityに入れる
+	if err != nil {
+		return err
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+	e.ID = uint64(id)
 	return err
 }
 
